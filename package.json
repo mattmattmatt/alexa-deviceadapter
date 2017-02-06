@@ -10,7 +10,7 @@
     "alexa",
     "echo",
     "amazon",
-    "echo"
+    "mqtt"
   ],
   "author": "Matt",
   "license": "ISC",

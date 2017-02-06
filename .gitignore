@@ -1,0 +1,4 @@
+/node_modules/
+/.git/
+/certificates/
+env.js

@@ -6,12 +6,18 @@ var mqtt = require('./mqtt');
  */
 exports.handler = function(event, context) {
     log('Input', event);
-    switch (event.header.namespace) {
-        case 'Alexa.ConnectedHome.Discovery':
+    switch (event.directive.header.namespace) {
+        case 'Alexa.Discovery':
             handleDiscovery(event, context);
             break;
-        case 'Alexa.ConnectedHome.Control':
-            handleControl(event, context);
+        case 'Alexa.PowerController':
+            handlePower(event, context);
+            break;
+        case 'Alexa.PlaybackController':
+            handlePlayback(event, context);
+            break;
+        case 'Alexa.Speaker':
+            handleSpeaker(event, context);
             break;
         default:
             log('Err', 'No supported namespace: ' + event.header.namespace);
@@ -25,237 +31,564 @@ exports.handler = function(event, context) {
  * We are expected to respond back with a list of appliances that we have discovered for a given
  * customer.
  */
-function handleDiscovery(accessToken, context) {
+function handleDiscovery(event, context) {
     /**
      * Craft the final response back to Alexa Smart Home Skill. This will include all the
      * discoverd appliances.
      */
     var result = {
-        "header": {
-            "name": "DiscoverAppliancesResponse",
-            "namespace": "Alexa.ConnectedHome.Discovery",
-            "payloadVersion": "2"
+        event: {
+            header: {
+                namespace: 'Alexa.Discovery',
+                name: 'Discover.Response',
+                payloadVersion: '3',
+                messageId: event.directive.header.messageId,
+            },
+            payload: {
+                endpoints: [
+                    {
+                        endpointId: 'music1',
+                        friendlyName: 'Apartment',
+                        description: 'Music on Kodi',
+                        manufacturerName: 'Cubox-i',
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                'properties.supported': [
+                                    {
+                                        name: 'powerState',
+                                    },
+                                ],
+                            },
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PlaybackController',
+                                version: '1.0',
+                                properties: {},
+                            },
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.Speaker',
+                                version: '1.0',
+                                'properties.supported': [
+                                    {
+                                        name: 'volume',
+                                    },
+                                    {
+                                        name: 'muted',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        endpointId: 'tv1',
+                        friendlyName: 'TV',
+                        description: "Matt's TV",
+                        manufacturerName: 'Sony',
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        endpointId: 'all1',
+                        friendlyName: 'everything',
+                        description: 'Turn lights, music and TV on or off',
+                        manufacturerName: 'all',
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'movies',
+                        description: 'Turns on TV and movies',
+                        friendlyName: 'Movies',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'tvshows',
+                        description: 'Turns on TV and TV shows',
+                        friendlyName: 'TV Shows',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightsbright',
+                        description: 'Light scene',
+                        friendlyName: 'bright',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightsreading',
+                        description: 'Light scene',
+                        friendlyName: 'reading',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightsrelax',
+                        description: 'Light scene',
+                        friendlyName: 'relax',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightsbedtime',
+                        description: 'Light scene',
+                        friendlyName: 'bedtime',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightsred',
+                        description: 'Light scene',
+                        friendlyName: 'red',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightsminimal',
+                        description: 'Light scene',
+                        friendlyName: 'minimal',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightsparty',
+                        description: 'Light scene',
+                        friendlyName: 'party',
+                        manufacturerName: 'Matt',
+                    },
+                    {
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '1.0',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        cookie: {
+                            isScene: true,
+                        },
+                        endpointId: 'lightssmart',
+                        description: 'Light scene',
+                        friendlyName: 'smart',
+                        manufacturerName: 'Matt',
+                    },
+                ],
+            },
         },
-        "payload": {
-            "discoveredAppliances": [{
-                    "actions": [
-                        "turnOn",
-                        "turnOff",
-                        "setPercentage"
-                    ],
-                    "additionalApplianceDetails": {},
-                    "applianceId": "music1",
-                    "friendlyDescription": "Music on Kodi via MQTT",
-                    "friendlyName": "Cody",
-                    "isReachable": true,
-                    "manufacturerName": "Cubox-i",
-                    "modelName": "Kodi",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn",
-                        "turnOff"
-                    ],
-                    "additionalApplianceDetails": {},
-                    "applianceId": "tv1",
-                    "friendlyDescription": "Matt's TV via MQTT",
-                    "friendlyName": "TV",
-                    "isReachable": true,
-                    "manufacturerName": "LG",
-                    "modelName": "Flatscreen",
-                    "version": "1"
-                },
-                {
-                    "actions": [
-                        "turnOn",
-                        "turnOff"
-                    ],
-                    "additionalApplianceDetails": {},
-                    "applianceId": "all1",
-                    "friendlyDescription": "Turn lights and music on or off via MQTT",
-                    "friendlyName": "everything",
-                    "isReachable": true,
-                    "manufacturerName": "all",
-                    "modelName": "all",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "movies",
-                    "friendlyDescription": "Movie time scene via MQTT",
-                    "friendlyName": "movie time",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "tvshows",
-                    "friendlyDescription": "TV show scene via MQTT",
-                    "friendlyName": "tv episodes",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightsbright",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "bright",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightsreading",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "reading",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightsrelax",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "relax",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightsbedtime",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "bedtime",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightsred",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "red",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightsminimal",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "minimal",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightsparty",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "party",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                },
-                {
-                    "actions": [
-                        "turnOn"
-                    ],
-                    "additionalApplianceDetails": {
-                        "isScene": true,
-                    },
-                    "applianceId": "lightssmart",
-                    "friendlyDescription": "Light scene via MQTT",
-                    "friendlyName": "smart",
-                    "isReachable": true,
-                    "manufacturerName": "Matt",
-                    "modelName": "Scene",
-                    "version": "0"
-                }
-            ]
-        }
     };
-    log('Discovery', result);
+    log('Discovery', JSON.stringify(result));
     context.succeed(result);
 }
 
-function sendToMqtt(topic, payload, name, context) {
-    mqtt.send(topic, payload).then(function() {
-        console.log('Success: ' + topic + ' ' + (payload || ''));
-        context.succeed({
-            "header": {
-                "name": name,
-                "namespace": "Alexa.ConnectedHome.Control",
-                "payloadVersion": "2"
-            },
-            "payload": {}
-        });
+function sendToMqtt(topic, payload, event, context, properties) {
+    mqtt.send(topic, payload).then(
+        function() {
+            console.log('Success: ' + topic + ' ' + (payload || ''));
 
-    }, function(e) {
-        console.log('Error: ' + JSON.stringify(e) +
-            ' when sending ' + topic + ' ' + (payload || ''));
-        context.fail(generateControlError(name,
-            'DEPENDENT_SERVICE_UNAVAILABLE',
-            'Unable to connect to MQTT'));
-    });
+            var response = {
+                context: {
+                    properties: [
+                        {
+                            namespace: 'Alexa.PowerController',
+                            name: 'powerState',
+                            value: 'ON',
+                            timeOfSample: '2017-02-03T16:20:50.52Z',
+                            uncertaintyInMilliseconds: 500,
+                        },
+                    ],
+                },
+                event: {
+                    header: {
+                        namespace: 'Alexa',
+                        name: 'Response',
+                        payloadVersion: '3',
+                        messageId: 'abc-123-def-456',
+                        correlationToken: 'dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg==',
+                    },
+                    endpoint: {
+                        scope: {
+                            type: 'BearerToken',
+                            token: 'access-token-from-Amazon',
+                        },
+                        endpointId: 'appliance-001',
+                    },
+                    payload: {},
+                },
+            };
+
+            var request = {
+                directive: {
+                    header: {
+                        namespace: 'Alexa.PowerController',
+                        name: 'TurnOff',
+                        payloadVersion: '3',
+                        messageId: '1bd5d003-31b9-476f-ad03-71d471922820',
+                        correlationToken: 'dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg==',
+                    },
+                    endpoint: {
+                        scope: {
+                            type: 'BearerToken',
+                            token: 'access-token-from-skill',
+                        },
+                        endpointId: 'appliance-001',
+                        cookie: {},
+                    },
+                    payload: {},
+                },
+            };
+
+            var dir = event.directive;
+
+            context.succeed({
+                context: {
+                    properties: properties,
+                },
+                event: {
+                    header: {
+                        namespace: 'Alexa',
+                        name: 'Response',
+                        payloadVersion: '3',
+                        messageId: dir.header.messageId,
+                        correlationToken: dir.header.correlationToken,
+                    },
+                    endpoint: {
+                        endpointId: dir.endpoint.endpointId,
+                    },
+                },
+                payload: {},
+            });
+        },
+        function(e) {
+            console.log(
+                'Error: ' + JSON.stringify(e) + ' when sending ' + topic + ' ' + (payload || '')
+            );
+            context.fail(generateControlError(event, 'ENDPOINT_UNREACHABLE'));
+        }
+    );
+}
+
+function getPowerStateProperty(value) {
+    return {
+        namespace: 'Alexa.PowerController',
+        name: 'powerState',
+        value: value,
+        timeOfSample: new Date().toISOString,
+        uncertaintyInMilliseconds: 800,
+    };
+}
+
+function handlePower(event, context) {
+    endpointId = event.directive.endpoint.endpointId;
+    cookie = event.directive.endpoint.cookie;
+
+    log('appliance', endpointId);
+
+    switch (endpointId) {
+        case 'tv1':
+            if (event.directive.header.name === 'TurnOff') {
+                sendToMqtt('events/tv', '0', event, context, [getPowerStateProperty('OFF')]);
+            } else {
+                sendToMqtt('events/tv', '1', event, context, [getPowerStateProperty('ON')]);
+            }
+            break;
+        case 'all1':
+            if (event.directive.header.name === 'TurnOff') {
+                sendToMqtt('events/home/leaving', undefined, event, context, [
+                    getPowerStateProperty('OFF'),
+                ]);
+            } else {
+                sendToMqtt('events/home/coming', undefined, event, context, [
+                    getPowerStateProperty('ON'),
+                ]);
+            }
+            break;
+            6;
+        case 'music1':
+            if (event.directive.header.name === 'TurnOff') {
+                sendToMqtt('events/kodi/execute', 'stop', event, context, [
+                    getPowerStateProperty('OFF'),
+                ]);
+            } else {
+                sendToMqtt('events/music/play', undefined, event, context, [
+                    getPowerStateProperty('ON'),
+                ]);
+            }
+            break;
+        case 'some-endpoint':
+            sendToMqtt('noop', '', event, context);
+            break;
+        default:
+            if (cookie.isScene) {
+                var topicMap = {
+                    movies: ['events/watch/movie', undefined],
+                    tvshows: ['events/watch/tvshow', undefined],
+                    lightsbright: ['events/lights/scene', 'bright'],
+                    lightsreading: ['events/lights/scene', 'reading'],
+                    lightsrelax: ['events/lights/scene', 'relax'],
+                    lightsbedtime: ['events/lights/scene', 'bedtime'],
+                    lightsred: ['events/lights/scene', 'red'],
+                    lightsminimal: ['events/lights/scene', 'minimal'],
+                    lightsparty: ['events/lights/scene', 'party'],
+                    lightssmart: ['events/lights/scene', 'on'],
+                };
+                sendToMqtt(topicMap[endpointId][0], topicMap[endpointId][1], event, context, [
+                    getPowerStateProperty('ON'),
+                ]);
+            } else {
+                context.fail(generateControlError(event, 'INVALID_DIRECTIVE'));
+            }
+    }
+}
+
+function handlePlayback(event, context) {
+    endpointId = event.directive.endpoint.endpointId;
+    cookie = event.directive.endpoint.cookie;
+
+    log('appliance', endpointId);
+
+    switch (event.directive.header.name) {
+        case 'Next':
+            sendToMqtt('events/kodi/execute', 'next', event, context);
+            break;
+        case 'Pause':
+            sendToMqtt('events/kodi/execute', 'pause', event, context);
+            break;
+        case 'Play':
+            sendToMqtt('events/kodi/execute', 'play', event, context);
+            break;
+        case 'Previous':
+            sendToMqtt('events/kodi/execute', 'previous', event, context);
+            break;
+        case 'Stop':
+            sendToMqtt('events/kodi/execute', 'stop', event, context);
+            break;
+        case 'FastForward':
+            sendToMqtt('events/kodi/execute', 'ff', event, context);
+            break;
+        case 'Rewind':
+            sendToMqtt('events/kodi/execute', 'fr', event, context);
+            break;
+        case 'StartOver':
+            sendToMqtt('events/kodi/execute', 'previous', event, context);
+            break;
+        default:
+            context.fail(generateControlError(event, 'INVALID_DIRECTIVE'));
+    }
+}
+
+function handleSpeaker(event, context) {
+    endpointId = event.directive.endpoint.endpointId;
+    cookie = event.directive.endpoint.cookie;
+
+    log('appliance', endpointId);
+
+    switch (event.directive.header.name) {
+        case 'SetMute':
+            sendToMqtt('events/kodi/execute', 'mute', event, context);
+            break;
+        case 'SetVolume':
+            sendToMqtt('events/kodi/volume', event.directive.payload.volume, event, context);
+            break;
+        case 'AdjustVolume':
+            sendToMqtt('events/kodi/volume', event.directive.payload.volumeDelta, event, context);
+            break;
+        default:
+            context.fail(generateControlError(event, 'INVALID_DIRECTIVE'));
+    }
 }
 
 /**
@@ -263,32 +596,11 @@ function sendToMqtt(topic, payload, name, context) {
  * This is called when Alexa requests an action (IE turn off appliance).
  */
 function handleControl(event, context) {
-    if (event.header.namespace != 'Alexa.ConnectedHome.Control') {
-        context.fail(generateControlError('Control Request',
-            'UNSUPPORTED_OPERATION', 'Unrecognized operation',
-            event.header.namespace, event.header.name));
-    }
-
-    var applianceId = event.payload.appliance.applianceId;
-    var details = event.payload.appliance.additionalApplianceDetails;
-    log('appliance', event.payload.appliance);
-
-    if (applianceId === 'tv1') {
-        if (event.header.name === 'TurnOnRequest') {
-            sendToMqtt('events/tv', '1', 'TurnOnConfirmation', context);
-        }
-        if (event.header.name === 'TurnOffRequest') {
-            sendToMqtt('events/tv', '0', 'TurnOffConfirmation', context);
-        }
-    }
+    var applianceId = event.payload.endpoint.applianceId;
+    var details = event.payload.endpoint.cookie;
+    log('appliance', event.payload.endpoint);
 
     if (applianceId === 'music1') {
-        if (event.header.name === 'TurnOnRequest') {
-            sendToMqtt('events/music/play', undefined, 'TurnOnConfirmation', context);
-        }
-        if (event.header.name === 'TurnOffRequest') {
-            sendToMqtt('events/music/play', undefined, 'TurnOffConfirmation', context);
-        }
         if (event.header.name === 'SetPercentageRequest') {
             sendToMqtt(
                 'events/kodi/volume',
@@ -298,55 +610,25 @@ function handleControl(event, context) {
             );
         }
     }
-
-    if (applianceId === 'all1') {
-        if (event.header.name === 'TurnOnRequest') {
-            sendToMqtt('events/home/coming', undefined, 'TurnOnConfirmation', context);
-        }
-        if (event.header.name === 'TurnOffRequest') {
-            sendToMqtt('events/home/leaving', undefined, 'TurnOffConfirmation', context);
-        }
-    }
-
-    if (details.isScene && event.header.name === 'TurnOnRequest') {
-        var topicMap = {
-            movies: ['events/watch/movie', undefined],
-            tvshows: ['events/watch/tvshow', undefined],
-            lightsbright: ['events/lights/scene', 'bright'],
-            lightsreading: ['events/lights/scene', 'reading'],
-            lightsrelax: ['events/lights/scene', 'relax'],
-            lightsbedtime: ['events/lights/scene', 'bedtime'],
-            lightsred: ['events/lights/scene', 'red'],
-            lightsminimal: ['events/lights/scene', 'minimal'],
-            lightsparty: ['events/lights/scene', 'party'],
-            lightssmart: ['events/lights/scene', 'on'],
-        };
-        sendToMqtt(topicMap[applianceId][0], topicMap[applianceId][1], 'TurnOnConfirmation', context);
-    }
 }
 
 function log(title, msg) {
     console.log(title + ':', msg);
 }
 
-function generateControlError(name, code, description) {
-    var headers = {
-        namespace: 'Alexa.ConnectedHome.Control',
-        name: name,
-        payloadVersion: '2'
+function generateControlError(event, type) {
+    return {
+        event: {
+            header: {
+                namespace: 'Alexa',
+                name: 'ErrorResponse',
+                messageId: event.directive.header.messageId,
+                payloadVersion: '3',
+            },
+            payload: {
+                type: type,
+                message: 'generateControlError',
+            },
+        },
     };
-
-    var payload = {
-        exception: {
-            code: code,
-            description: description
-        }
-    };
-
-    var result = {
-        header: headers,
-        payload: payload
-    };
-
-    return result;
 }

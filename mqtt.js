@@ -10,11 +10,11 @@ var clientOptions = {
     username: env.mqtt.username,
     password: env.mqtt.password,
     ca: [fs.readFileSync('./certificates/ca.crt')],
-    rejectUnauthorized: true
+    rejectUnauthorized: true,
 };
 
 var publishOptions = {
-    qos: 2
+    qos: 2,
 };
 
 function log() {

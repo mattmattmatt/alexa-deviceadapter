@@ -60,11 +60,13 @@ function handleDiscovery(event, context) {
                                 type: 'AlexaInterface',
                                 interface: 'Alexa.PowerController',
                                 version: '1.0',
-                                'properties.supported': [
-                                    {
-                                        name: 'powerState',
-                                    },
-                                ],
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                },
                             },
                             {
                                 type: 'AlexaInterface',

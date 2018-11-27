@@ -59,14 +59,31 @@ function handleDiscovery(event, context) {
                             {
                                 type: 'AlexaInterface',
                                 interface: 'Alexa.PowerController',
-                                version: '1.0',
+                                version: '3',
                                 properties: {
                                     supported: [
                                         {
                                             name: 'powerState',
                                         },
                                     ],
+                                    proactivelyReported: false,
+                                    retrievable: false,
                                 },
+                            },
+                            {
+                                interface: 'Alexa.RemoteVideoPlayer',
+                                type: 'AlexaInterface',
+                                version: '1.0',
+                            },
+                            {
+                                interface: 'Alexa.ChannelController',
+                                type: 'AlexaInterface',
+                                version: '3',
+                            },
+                            {
+                                interface: 'Alexa.Launcher',
+                                type: 'AlexaInterface',
+                                version: '1.0',
                             },
                             {
                                 type: 'AlexaInterface',
@@ -110,13 +127,38 @@ function handleDiscovery(event, context) {
                             {
                                 type: 'AlexaInterface',
                                 interface: 'Alexa.PowerController',
-                                version: '1.0',
+                                version: '3',
                                 properties: {
                                     supported: [
                                         {
                                             name: 'powerState',
                                         },
                                     ],
+                                    proactivelyReported: false,
+                                    retrievable: false,
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        endpointId: 'nexus9',
+                        friendlyName: 'Tablet',
+                        description: 'Tablet on the wall',
+                        manufacturerName: 'HTC',
+                        displayCategories: [],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.PowerController',
+                                version: '3',
+                                properties: {
+                                    supported: [
+                                        {
+                                            name: 'powerState',
+                                        },
+                                    ],
+                                    proactivelyReported: false,
+                                    retrievable: false,
                                 },
                             },
                         ],
@@ -412,6 +454,19 @@ function handlePower(event, context) {
                 );
             } else {
                 sendToMqtt('events/tv', '1').then(
+                    sendAlexaResponse(event, context, [getPowerStateProperty('ON')]),
+                    sendAlexaFail(event, context)
+                );
+            }
+            break;
+        case 'nexus9':
+            if (event.directive.header.name === 'TurnOff') {
+                sendToMqtt('set/nexus7/display', '0').then(
+                    sendAlexaResponse(event, context, [getPowerStateProperty('OFF')]),
+                    sendAlexaFail(event, context)
+                );
+            } else {
+                sendToMqtt('set/nexus7/display', '1').then(
                     sendAlexaResponse(event, context, [getPowerStateProperty('ON')]),
                     sendAlexaFail(event, context)
                 );

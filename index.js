@@ -188,6 +188,21 @@ function handleDiscovery(event, context) {
                                 supportsDeactivation: false,
                             },
                         ],
+                        endpointId: 'playstation',
+                        description: 'Turns on TV and AVR, switches to Playstation input',
+                        friendlyName: 'Playstation',
+                        manufacturerName: "Matt's Smart Home",
+                    },
+                    {
+                        displayCategories: ['ACTIVITY_TRIGGER'],
+                        capabilities: [
+                            {
+                                type: 'AlexaInterface',
+                                interface: 'Alexa.SceneController',
+                                version: '3',
+                                supportsDeactivation: false,
+                            },
+                        ],
                         endpointId: 'movies',
                         description: 'Turns on TV and movies',
                         friendlyName: 'Movies',
@@ -510,6 +525,7 @@ function handleScene(event, context) {
             break;
         default:
             var topicMap = {
+                playstation: ['events/av', 'game'],
                 movies: ['events/watch/movie', undefined],
                 tvshows: ['events/watch/tvshow', undefined],
                 lightsbright: ['events/lights/scene', 'bright'],
